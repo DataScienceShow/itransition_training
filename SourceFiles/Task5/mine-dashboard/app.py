@@ -5,6 +5,7 @@ import plotly.express as px
 from scipy import stats
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table
 from reportlab.lib.styles import getSampleStyleSheet
+import matplotlib.pyplot as plt
 
 st.set_page_config(layout="wide")
 
@@ -181,9 +182,30 @@ def generate_pdf():
             fig = px.bar(temp, x="Date", y=col)
         else:
             fig = px.area(temp, x="Date", y=col)
-        fig.write_image(f"{col}.png")
+        
+        # create matplotlib chart (NO CHROME NEEDED)
+        plt.figure(figsize=(8,4))
 
-        content.append(Image(f"{col}.png", width=500, height=250))
+        plt.plot(temp["Date"], temp[col], label=col)
+
+        # anomalies
+        anomalies = temp[temp["Anomaly"]]
+        plt.scatter(anomalies["Date"], anomalies[col], color="red", label="Anomalies")
+
+        # trendline
+        x = np.arange(len(temp))
+        y = temp[col].ffill()
+        trend = np.poly1d(np.polyfit(x, y, trend_degree))(x)
+        plt.plot(temp["Date"], trend, linestyle="--", label="Trend")
+
+        plt.legend()
+        plt.xticks(rotation=45)
+
+        img_path = f"{col}.png"
+        plt.savefig(img_path, bbox_inches="tight")
+        plt.close()
+
+        content.append(Image(img_path, width=500, height=250))
         content.append(Spacer(1, 10))
 
         anomalies = temp[temp["Anomaly"]]
