@@ -130,7 +130,7 @@ for col in selected:
 
     # trendline
     x = np.arange(len(temp))
-    y = temp[col].fillna(method="ffill")
+    y = temp[col].ffill()
     trend = np.poly1d(np.polyfit(x, y, trend_degree))(x)
 
     fig.add_scatter(
